@@ -31,6 +31,16 @@
   </div>
 </header>
 
+<nav class="section-index" aria-label="Sections">
+  <ul>
+    <li><a href="#abstract">Abstract</a></li>
+    <li><a href="#method">Method</a></li>
+    <li><a href="#simulation">Simulation</a></li>
+    <li><a href="#real-world">Real world</a></li>
+    <li><a href="#code">Code</a></li>
+  </ul>
+</nav>
+
 <main>
 
 <section class="section teaser" id="teaser">
@@ -184,7 +194,6 @@
       </div>
     </div>
 
-    <p class="rollout-note">The clips below are WiFI-BC rollouts. Each clip starts from a different initial state, and in LIBERO-Goal each clip is a different task.</p>
     <div class="rollout-group" data-task="pushing">
       <h4 class="title is-5">Simulated Pushing (pixels)</h4>
       <div class="video-grid is-quad">
@@ -463,23 +472,20 @@
         Over 100 rollouts, WiFI-BC exploits both modes at the first decision point and successfully follows both routes.
       </p>
     </div>
-    <div class="columns is-vcentered" data-task="pointmaze">
-      <div class="column">
-        <figure class="figure">
-          <img src="static/images/trajectories.webp" width="542" height="490" loading="lazy"
-               alt="Top-down view of a maze with a square obstacle between the start on the left and the goal on the right. One hundred WiFI-BC trajectories split between the corridor above the obstacle and the corridor below it, and both reach the goal.">
-        </figure>
+    <figure class="figure media-pair" data-task="pointmaze">
+      <div class="media-pair-items">
+        <img src="static/images/trajectories.webp" width="542" height="490" loading="lazy"
+             alt="Top-down view of a maze with a square obstacle between the start on the left and the goal on the right. One hundred WiFI-BC trajectories split between the corridor above the obstacle and the corridor below it, and both reach the goal.">
+        <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+               poster="static/videos/sim_pointmaze.webp" aria-label="Point Maze trajectories drawn one after another from the same start; paths accumulate through both the upper and the lower corridor around the obstacle.">
+          <source data-src="static/videos/sim_pointmaze.mp4" type="video/mp4">
+        </video>
       </div>
-      <div class="column">
-        <figure class="video-tile">
-          <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
-                 poster="static/videos/sim_pointmaze.webp" aria-label="Point Maze trajectories drawn one after another from the same start; paths accumulate through both the upper and the lower corridor around the obstacle.">
-            <source data-src="static/videos/sim_pointmaze.mp4" type="video/mp4">
-          </video>
-          <figcaption>Rollouts from the same start, drawn one after another. Each finished path stays on screen, so both corridors fill in as the video plays. Here each action is sampled from the control points in proportion to its score.</figcaption>
-        </figure>
-      </div>
-    </div>
+      <figcaption class="has-text-centered">
+        Left: trajectories of 100 rollouts. Right: rollouts from the same start, drawn one after another; each finished path stays on screen, so both corridors fill in as the video plays.
+        In the video, each action is sampled from the control points in proportion to its score.
+      </figcaption>
+    </figure>
   </div>
 </section>
 

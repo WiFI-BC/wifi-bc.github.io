@@ -123,6 +123,76 @@ video {
   .video-grid.is-quad .video-tile { flex-basis: calc((100% - 1rem) / 2); }
 }
 
+.media-pair-items {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.media-pair-items img, .media-pair-items video {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  background: #fff;
+}
+
+@media screen and (max-width: 768px) {
+  .media-pair-items { grid-template-columns: 1fr; }
+}
+
+/* Section index: a sticky bar on narrow screens, a fixed side list on wide ones. */
+
+.section-index {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+
+.section-index ul {
+  display: flex;
+  justify-content: safe center;
+  gap: 0.25rem;
+  overflow-x: auto;
+  margin: 0;
+  padding: 0.4rem 1rem;
+  list-style: none;
+}
+
+.section-index a {
+  display: block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.section-index a:hover { color: var(--ink); background: var(--shade); }
+.section-index a[aria-current] { color: var(--ink); background: var(--accent-tint); font-weight: 600; }
+
+main > section { scroll-margin-top: 3rem; }
+
+@media screen and (min-width: 1280px) {
+  .section-index {
+    position: fixed;
+    top: 50%;
+    left: 1rem;
+    width: 8.5rem;
+    transform: translateY(-50%);
+    background: none;
+    border: 0;
+  }
+
+  .section-index ul { flex-direction: column; padding: 0; }
+  .section-index a { border-left: 2px solid var(--line); border-radius: 0; }
+  .section-index a[aria-current] { border-left-color: var(--accent); background: none; }
+  main > section { scroll-margin-top: 0; }
+}
+
 /* Method */
 
 .method-cards { margin-top: 1rem; }
