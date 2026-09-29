@@ -17,7 +17,7 @@ const observer = new IntersectionObserver((entries) => {
       continue;
     }
     if (video.querySelector('source[data-src]')) loadSources(video);
-    if (!reduceMotion) video.play().catch(() => {});
+    if (!reduceMotion && video.autoplay) video.play().catch(() => {});
   }
 }, { rootMargin: '200px 0px' });
 

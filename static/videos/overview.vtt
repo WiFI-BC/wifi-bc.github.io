@@ -1,0 +1,109 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:04.960
+WiFI-BC: Learning Efficient Implicit Policies from Demonstrations via Representative Candidate Actions.
+
+00:00:04.960 --> 00:00:09.840
+Imitation learning algorithms face the dilemma of choosing between task success and inference-time
+
+00:00:09.840 --> 00:00:15.040
+efficiency. On one side of the scale, we find explicit policies. They are fast during inference
+
+00:00:15.040 --> 00:00:19.360
+and obtain good results on a range of tasks, but fail to shape proper policies for complex
+
+00:00:19.360 --> 00:00:23.920
+environments with characteristics like multimodal action distributions. On the other side,
+
+00:00:23.920 --> 00:00:29.040
+we have implicit and diffusion policies, both able to model complex functions and capture
+
+00:00:29.120 --> 00:00:34.320
+multimodality and expert actions. However, they rely on iterative inference processes that increase
+
+00:00:34.320 --> 00:00:39.280
+latency on every decision. As an alternative, we introduce Wire-Fitting Implicit Behavioral
+
+00:00:39.280 --> 00:00:44.000
+Cloning, an algorithm that learns a generator that proposes a small set of candidate actions
+
+00:00:44.000 --> 00:00:48.640
+and a state-action score function. The generator is trained to make a small set of proposals
+
+00:00:48.640 --> 00:00:53.440
+representative of the score function, pushing one of them to be the maximizer. Therefore,
+
+00:00:53.440 --> 00:00:57.840
+the inference process consists only of one generation of candidates and a parallel
+
+00:00:57.840 --> 00:01:02.160
+evaluation for each of them. As a result, we achieve a policy that combines efficient
+
+00:01:02.160 --> 00:01:07.120
+inference while maintaining high task success. To achieve this, our first component, the
+
+00:01:07.120 --> 00:01:11.680
+Q-estimator, is trained to score the expert action higher than a set of negative examples.
+
+00:01:12.880 --> 00:01:17.200
+The training process of the control point generator is inspired by how wire-fitting
+
+00:01:17.200 --> 00:01:22.480
+interpolation achieves structural maximizability. To make one of the control points the maximizer,
+
+00:01:22.480 --> 00:01:26.880
+we minimize the error between only the expert action and the closest candidate.
+
+00:01:26.880 --> 00:01:31.840
+We also maximize their entropy, so they become representative of the complete score function.
+
+00:01:31.840 --> 00:01:36.080
+The negative examples generated for training the Q-estimator are a mixture of the top-k
+
+00:01:36.080 --> 00:01:41.040
+scored candidates and either Langevin samples or noisy expert copies. This negative mining
+
+00:01:41.040 --> 00:01:45.280
+strategy improves the expressivity of the Q-estimator. Including the top-k control
+
+00:01:45.280 --> 00:01:49.840
+points allows creating an adversarial synergy between generator and estimator, which pushes
+
+00:01:49.840 --> 00:01:54.480
+control points to high-scored regions and improves multimodal robustness. To test the
+
+00:01:54.480 --> 00:01:58.640
+capabilities of WiFI-BC, we tested it against the other baselines in synthetic,
+
+00:01:58.640 --> 00:02:03.680
+simulated, and real-world environments. In the simulation environments, we observed that WiFI-BC
+
+00:02:03.680 --> 00:02:08.800
+obtains task success results on par with implicit behavioral cloning and diffusion policy.
+
+00:02:09.840 --> 00:02:14.080
+WiFI-BC is always part of the Pareto frontier, except when regression behavioral
+
+00:02:14.080 --> 00:02:18.880
+cloning obtains the best task performance. What is more, we demonstrate that WiFI-BC is
+
+00:02:18.880 --> 00:02:23.280
+capable of modeling multimodal action distributions. For the real-world environment,
+
+00:02:23.280 --> 00:02:28.720
+we train the algorithms on the Push-T task. We observe that WiFI-BC achieves the best results
+
+00:02:28.720 --> 00:02:32.880
+in terms of intersection over union and is the second-fastest method after regression
+
+00:02:32.880 --> 00:02:37.600
+behavioral cloning. In summary, we propose an implicit behavioral cloning algorithm that
+
+00:02:37.600 --> 00:02:42.400
+combines a control point generator and a Q-estimator to balance policy success and inference
+
+00:02:42.400 --> 00:02:47.600
+time efficiency. Through our experiments, we demonstrate that WiFI-BC achieves the best
+
+00:02:47.600 --> 00:02:51.440
+trade-off across comparison behavioral cloning methods. Thank you.
