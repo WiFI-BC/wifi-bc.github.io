@@ -27,9 +27,6 @@
           <span>Code</span>
         </a>
       </div>
-      <p class="tldr">
-        A learned generator proposes a small set of candidate actions, and the policy is the arg&nbsp;max over their scores rather than a search over the action space.
-      </p>
     </div>
   </div>
 </header>
@@ -147,91 +144,207 @@
   </div>
 </section>
 
-<section class="section" id="tasks">
-  <div class="container is-max-desktop">
-    <h2 class="title is-3 has-text-centered">Tasks</h2>
-    <figure class="figure">
-      <a class="zoom" href="static/images/environments.webp" title="Open full-size figure"><img src="static/images/environments.webp" width="1920" height="392" loading="lazy"
-             alt="Six task settings: a particle moving between two goals, a simulated arm pushing a block into a target zone, a Shadow Hand holding a pen, a Franka arm in a kitchen, a Franka arm in a LIBERO tabletop scene, and a real WidowX arm pushing a red T-shaped block."></a>
-      <figcaption>
-        The task settings used in this work, left to right: the <i>n</i>-dimensional particle integrator; simulated block pushing, shown here from the camera used by the pixel variant; Adroit Pen reorientation; Franka Kitchen; LIBERO-Goal; and Push-T on a real WidowX arm.
-      </figcaption>
-    </figure>
-
-    <section class="table-container" aria-labelledby="envs-caption" tabindex="0">
-      <table class="table is-fullwidth is-narrow data-table">
-        <caption id="envs-caption">Environments and demonstration data</caption>
-        <thead>
-          <tr>
-            <th scope="col">Environment</th>
-            <th scope="col">Obs. dim.</th>
-            <th scope="col">Action dim.</th>
-            <th scope="col">Success metric</th>
-            <th scope="col"># Demos / # Transitions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><th scope="row">Particle (<i>n</i>-D)</th><td>4<i>n</i></td><td><i>n</i></td><td>Success Rate</td><td>2,000 / 102,000</td></tr>
-          <tr><th scope="row">D4RL Adroit Pen (human)</th><td>45</td><td>24</td><td>Episode Reward</td><td>25 / 5,000</td></tr>
-          <tr><th scope="row">D4RL Franka Kitchen (complete)</th><td>59</td><td>9</td><td>Subtasks Completed (0–4)</td><td>19 / 4,209</td></tr>
-          <tr><th scope="row">Pushing (states)</th><td>10</td><td>2</td><td>Success Rate</td><td>1,400 / 75,226</td></tr>
-          <tr><th scope="row">Pushing (pixels)</th><td>3×240×320</td><td>2</td><td>Success Rate</td><td>2,000 / 104,840</td></tr>
-          <tr><th scope="row">LIBERO-Goal (pixels)</th><td>2×3×128×128</td><td>7</td><td>Success Rate</td><td>500 / 63,728</td></tr>
-          <tr><th scope="row">Push-T WidowX (real)</th><td>2×3×240×320</td><td>2</td><td>Intersection over Union (IoU)</td><td>151 / 91,757</td></tr>
-        </tbody>
-      </table>
-    </section>
-    <p class="table-note">
-      Observation width is given per frame and thus increases with frame stacking.
-      LIBERO provides two RGB views of the scene.
-      Kitchen reports the number of subtasks solved rather than a success rate.
-      All methods are trained from scratch using only the demonstration dataset and no pretraining.
-    </p>
-  </div>
-</section>
-
 <section class="section is-shaded" id="simulation">
   <div class="container is-max-desktop">
     <h2 class="title is-3 has-text-centered">Simulation results</h2>
 
     <h3 class="title is-4">Rollouts</h3>
-    <div class="video-grid">
-      <figure class="video-tile" data-task="particle">
-        <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
-               poster="static/videos/sim_particle.webp" aria-label="Particle integrator: the agent reaches the first goal, then moves to the second goal and stays there.">
-          <source data-src="static/videos/sim_particle.mp4" type="video/mp4">
-        </video>
-        <figcaption>Particle (2-D shown)</figcaption>
-      </figure>
-      <figure class="video-tile" data-task="pushing">
-        <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
-               poster="static/videos/sim_pushing.webp" aria-label="Simulated xArm pushing a small block into the green target zone.">
-          <source data-src="static/videos/sim_pushing.mp4" type="video/mp4">
-        </video>
-        <figcaption>Simulated Pushing (pixels)</figcaption>
-      </figure>
-      <figure class="video-tile" data-task="pen">
-        <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
-               poster="static/videos/sim_pen.webp" aria-label="Shadow Hand reorienting a pen to match the orientation of the target pen.">
-          <source data-src="static/videos/sim_pen.mp4" type="video/mp4">
-        </video>
-        <figcaption>Adroit Pen</figcaption>
-      </figure>
-      <figure class="video-tile" data-task="kitchen">
-        <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
-               poster="static/videos/sim_kitchen.webp" aria-label="Franka arm manipulating several objects in a simulated kitchen.">
-          <source data-src="static/videos/sim_kitchen.mp4" type="video/mp4">
-        </video>
-        <figcaption>Franka Kitchen</figcaption>
-      </figure>
-      <figure class="video-tile" data-task="libero">
-        <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
-               poster="static/videos/sim_libero.webp" aria-label="Franka arm completing a language-conditioned LIBERO-Goal task.">
-          <source data-src="static/videos/sim_libero.mp4" type="video/mp4">
-        </video>
-        <figcaption>LIBERO-Goal</figcaption>
-      </figure>
+    <div class="rollout-group" data-task="particle">
+      <h4 class="title is-5">Particle environment</h4>
+      <p class="rollout-note">Shown in 2-D, where each episode redraws the start and both goals: reach the first goal, then move to the second and stay there. The reported results use the 16-D version, which cannot be shown this way.</p>
+      <div class="video-grid is-quad">
+        <figure class="video-tile">
+          <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+                 poster="static/videos/sim_particle_1.webp" aria-label="2-D particle environment: the agent reaches the first goal, then moves to the second goal, episode 1.">
+            <source data-src="static/videos/sim_particle_1.mp4" type="video/mp4">
+          </video>
+          <figcaption>Episode 1</figcaption>
+        </figure>
+        <figure class="video-tile">
+          <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+                 poster="static/videos/sim_particle_2.webp" aria-label="2-D particle environment: the agent reaches the first goal, then moves to the second goal, episode 2.">
+            <source data-src="static/videos/sim_particle_2.mp4" type="video/mp4">
+          </video>
+          <figcaption>Episode 2</figcaption>
+        </figure>
+        <figure class="video-tile">
+          <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+                 poster="static/videos/sim_particle_3.webp" aria-label="2-D particle environment: the agent reaches the first goal, then moves to the second goal, episode 3.">
+            <source data-src="static/videos/sim_particle_3.mp4" type="video/mp4">
+          </video>
+          <figcaption>Episode 3</figcaption>
+        </figure>
+        <figure class="video-tile">
+          <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+                 poster="static/videos/sim_particle_4.webp" aria-label="2-D particle environment: the agent reaches the first goal, then moves to the second goal, episode 4.">
+            <source data-src="static/videos/sim_particle_4.mp4" type="video/mp4">
+          </video>
+          <figcaption>Episode 4</figcaption>
+        </figure>
+      </div>
     </div>
+
+    <p class="rollout-note">The clips below are WiFI-BC rollouts. Each clip starts from a different initial state, and in LIBERO-Goal each clip is a different task.</p>
+    <div class="rollout-group" data-task="pushing">
+      <h4 class="title is-5">Simulated Pushing (pixels)</h4>
+      <div class="video-grid is-quad">
+        <figure class="video-tile">
+          <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+                 poster="static/videos/sim_pushing_1.webp" aria-label="Simulated xArm pushing a block into the green target zone, initial state 1.">
+            <source data-src="static/videos/sim_pushing_1.mp4" type="video/mp4">
+          </video>
+          <figcaption>Initial state 1</figcaption>
+        </figure>
+        <figure class="video-tile">
+          <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+                 poster="static/videos/sim_pushing_2.webp" aria-label="Simulated xArm pushing a block into the green target zone, initial state 2.">
+            <source data-src="static/videos/sim_pushing_2.mp4" type="video/mp4">
+          </video>
+          <figcaption>Initial state 2</figcaption>
+        </figure>
+        <figure class="video-tile">
+          <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+                 poster="static/videos/sim_pushing_3.webp" aria-label="Simulated xArm pushing a block into the green target zone, initial state 3.">
+            <source data-src="static/videos/sim_pushing_3.mp4" type="video/mp4">
+          </video>
+          <figcaption>Initial state 3</figcaption>
+        </figure>
+        <figure class="video-tile">
+          <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+                 poster="static/videos/sim_pushing_4.webp" aria-label="Simulated xArm pushing a block into the green target zone, initial state 4.">
+            <source data-src="static/videos/sim_pushing_4.mp4" type="video/mp4">
+          </video>
+          <figcaption>Initial state 4</figcaption>
+        </figure>
+      </div>
+    </div>
+    <div class="rollout-group" data-task="pen">
+      <h4 class="title is-5">Adroit Pen</h4>
+      <div class="video-grid is-quad">
+        <figure class="video-tile">
+          <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+                 poster="static/videos/sim_pen_1.webp" aria-label="Shadow Hand reorienting a pen to match target orientation 1.">
+            <source data-src="static/videos/sim_pen_1.mp4" type="video/mp4">
+          </video>
+          <figcaption>Target orientation 1</figcaption>
+        </figure>
+        <figure class="video-tile">
+          <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+                 poster="static/videos/sim_pen_2.webp" aria-label="Shadow Hand reorienting a pen to match target orientation 2.">
+            <source data-src="static/videos/sim_pen_2.mp4" type="video/mp4">
+          </video>
+          <figcaption>Target orientation 2</figcaption>
+        </figure>
+        <figure class="video-tile">
+          <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+                 poster="static/videos/sim_pen_3.webp" aria-label="Shadow Hand reorienting a pen to match target orientation 3.">
+            <source data-src="static/videos/sim_pen_3.mp4" type="video/mp4">
+          </video>
+          <figcaption>Target orientation 3</figcaption>
+        </figure>
+        <figure class="video-tile">
+          <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+                 poster="static/videos/sim_pen_4.webp" aria-label="Shadow Hand reorienting a pen to match target orientation 4.">
+            <source data-src="static/videos/sim_pen_4.mp4" type="video/mp4">
+          </video>
+          <figcaption>Target orientation 4</figcaption>
+        </figure>
+      </div>
+    </div>
+    <div class="rollout-group" data-task="kitchen">
+      <h4 class="title is-5">Franka Kitchen</h4>
+      <p class="rollout-note">Kitchen starts from nearly the same state in every episode, so these two rollouts differ only in the policy's choices.</p>
+      <div class="video-grid is-quad">
+        <figure class="video-tile">
+          <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+                 poster="static/videos/sim_kitchen_1.webp" aria-label="Franka arm completing kitchen subtasks, rollout 1.">
+            <source data-src="static/videos/sim_kitchen_1.mp4" type="video/mp4">
+          </video>
+          <figcaption>Rollout 1</figcaption>
+        </figure>
+        <figure class="video-tile">
+          <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+                 poster="static/videos/sim_kitchen_2.webp" aria-label="Franka arm completing kitchen subtasks, rollout 2.">
+            <source data-src="static/videos/sim_kitchen_2.mp4" type="video/mp4">
+          </video>
+          <figcaption>Rollout 2</figcaption>
+        </figure>
+      </div>
+    </div>
+    <div class="rollout-group" data-task="libero">
+      <h4 class="title is-5">LIBERO-Goal</h4>
+      <div class="video-grid is-quad">
+        <figure class="video-tile">
+          <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+                 poster="static/videos/sim_libero_1.webp" aria-label="Franka arm solving the LIBERO-Goal task: open the top drawer and put the bowl inside.">
+            <source data-src="static/videos/sim_libero_1.mp4" type="video/mp4">
+          </video>
+          <figcaption>Open the top drawer and put the bowl inside</figcaption>
+        </figure>
+        <figure class="video-tile">
+          <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+                 poster="static/videos/sim_libero_2.webp" aria-label="Franka arm solving the LIBERO-Goal task: put the wine bottle on the rack.">
+            <source data-src="static/videos/sim_libero_2.mp4" type="video/mp4">
+          </video>
+          <figcaption>Put the wine bottle on the rack</figcaption>
+        </figure>
+        <figure class="video-tile">
+          <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+                 poster="static/videos/sim_libero_3.webp" aria-label="Franka arm solving the LIBERO-Goal task: push the plate to the front of the stove.">
+            <source data-src="static/videos/sim_libero_3.mp4" type="video/mp4">
+          </video>
+          <figcaption>Push the plate to the front of the stove</figcaption>
+        </figure>
+        <figure class="video-tile">
+          <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+                 poster="static/videos/sim_libero_4.webp" aria-label="Franka arm solving the LIBERO-Goal task: open the middle drawer of the cabinet.">
+            <source data-src="static/videos/sim_libero_4.mp4" type="video/mp4">
+          </video>
+          <figcaption>Open the middle drawer of the cabinet</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <details class="numbers" id="tasks">
+      <summary>Show tasks and datasets</summary>
+      <figure class="figure">
+        <a class="zoom" href="static/images/environments.webp" title="Open full-size figure"><img src="static/images/environments.webp" width="1920" height="392" loading="lazy"
+               alt="Six task settings: a particle moving between two goals, a simulated arm pushing a block into a target zone, a Shadow Hand holding a pen, a Franka arm in a kitchen, a Franka arm in a LIBERO tabletop scene, and a real WidowX arm pushing a red T-shaped block."></a>
+        <figcaption>
+          The task settings used in this work, left to right: the <i>n</i>-dimensional particle integrator; simulated block pushing, shown here from the camera used by the pixel variant; Adroit Pen reorientation; Franka Kitchen; LIBERO-Goal; and Push-T on a real WidowX arm.
+        </figcaption>
+      </figure>
+
+      <section class="table-container" aria-labelledby="envs-caption" tabindex="0">
+        <table class="table is-fullwidth is-narrow data-table">
+          <caption id="envs-caption">Environments and demonstration data</caption>
+          <thead>
+            <tr>
+              <th scope="col">Environment</th>
+              <th scope="col">Obs. dim.</th>
+              <th scope="col">Action dim.</th>
+              <th scope="col">Success metric</th>
+              <th scope="col"># Demos / # Transitions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Particle (<i>n</i>-D)</th><td>4<i>n</i></td><td><i>n</i></td><td>Success Rate</td><td>2,000 / 102,000</td></tr>
+            <tr><th scope="row">D4RL Adroit Pen (human)</th><td>45</td><td>24</td><td>Episode Reward</td><td>25 / 5,000</td></tr>
+            <tr><th scope="row">D4RL Franka Kitchen (complete)</th><td>59</td><td>9</td><td>Subtasks Completed (0–4)</td><td>19 / 4,209</td></tr>
+            <tr><th scope="row">Pushing (states)</th><td>10</td><td>2</td><td>Success Rate</td><td>1,400 / 75,226</td></tr>
+            <tr><th scope="row">Pushing (pixels)</th><td>3×240×320</td><td>2</td><td>Success Rate</td><td>2,000 / 104,840</td></tr>
+            <tr><th scope="row">LIBERO-Goal (pixels)</th><td>2×3×128×128</td><td>7</td><td>Success Rate</td><td>500 / 63,728</td></tr>
+            <tr><th scope="row">Push-T WidowX (real)</th><td>2×3×240×320</td><td>2</td><td>Intersection over Union (IoU)</td><td>151 / 91,757</td></tr>
+          </tbody>
+        </table>
+      </section>
+      <p class="table-note">
+        Observation width is given per frame and thus increases with frame stacking.
+        LIBERO provides two RGB views of the scene.
+        Kitchen reports the number of subtasks solved rather than a success rate.
+        All methods are trained from scratch using only the demonstration dataset and no pretraining.
+      </p>
+    </details>
 
     <h3 class="title is-4">Task success and inference cost</h3>
     <div class="content">
@@ -342,22 +455,29 @@
     </details>
 
     <h3 class="title is-4">Multimodality</h3>
-    <div class="columns is-vcentered">
-      <div class="column is-5">
+    <div class="content">
+      <p>
+        We evaluate WiFI-BC's robustness to multimodal action distributions in MuJoCo Point Maze by placing an obstacle between the initial state and the goal, and training on demonstrations from a scripted expert that arbitrarily takes either the upper or lower corridor.
+      </p>
+      <p>
+        Over 100 rollouts, WiFI-BC exploits both modes at the first decision point and successfully follows both routes.
+      </p>
+    </div>
+    <div class="columns is-vcentered" data-task="pointmaze">
+      <div class="column">
         <figure class="figure">
           <img src="static/images/trajectories.webp" width="542" height="490" loading="lazy"
                alt="Top-down view of a maze with a square obstacle between the start on the left and the goal on the right. One hundred WiFI-BC trajectories split between the corridor above the obstacle and the corridor below it, and both reach the goal.">
         </figure>
       </div>
       <div class="column">
-        <div class="content">
-          <p>
-            We evaluate WiFI-BC's robustness to multimodal action distributions in MuJoCo Point Maze by placing an obstacle between the initial state and the goal, and training on demonstrations from a scripted expert that arbitrarily takes either the upper or lower corridor.
-          </p>
-          <p>
-            Over 100 rollouts, WiFI-BC exploits both modes at the first decision point and successfully follows both routes.
-          </p>
-        </div>
+        <figure class="video-tile">
+          <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+                 poster="static/videos/sim_pointmaze.webp" aria-label="Point Maze trajectories drawn one after another from the same start; paths accumulate through both the upper and the lower corridor around the obstacle.">
+            <source data-src="static/videos/sim_pointmaze.mp4" type="video/mp4">
+          </video>
+          <figcaption>Rollouts from the same start, drawn one after another. Each finished path stays on screen, so both corridors fill in as the video plays. Here each action is sampled from the control points in proportion to its score.</figcaption>
+        </figure>
       </div>
     </div>
   </div>
@@ -390,14 +510,14 @@
                poster="static/videos/setup_front.webp" aria-label="Front view of the WidowX arm pushing the red T-shaped block, with one of the policy cameras on a stand in the foreground.">
           <source data-src="static/videos/setup_front.mp4" type="video/mp4">
         </video>
-        <figcaption>Front view · 1× speed</figcaption>
+        <figcaption>Front view · 2× speed</figcaption>
       </figure>
       <figure class="video-tile" data-view="setup">
-        <video autoplay muted loop playsinline controls preload="none" width="960" height="540"
-               poster="static/videos/setup_side.webp" aria-label="Side view of the WidowX arm pushing the red T-shaped block onto its outline on the table.">
-          <source data-src="static/videos/setup_side.mp4" type="video/mp4">
+        <video autoplay muted loop playsinline controls preload="none" width="540" height="390"
+               poster="static/videos/setup_arm.webp" aria-label="Front-left view of the WidowX arm pushing the red T-shaped block onto its outline.">
+          <source data-src="static/videos/setup_arm.mp4" type="video/mp4">
         </video>
-        <figcaption>Side view · 1× speed</figcaption>
+        <figcaption>Arm view · 2× speed</figcaption>
       </figure>
     </div>
 
@@ -433,10 +553,10 @@
       </figure>
       <figure class="video-tile">
         <video autoplay muted loop playsinline controls preload="none" width="960" height="380"
-               poster="static/videos/real_pusht_5.webp" aria-label="WiFI-BC Push-T rollout 5 on the real WidowX arm, side and top cameras.">
+               poster="static/videos/real_pusht_5.webp" aria-label="WiFI-BC Push-T rollout 5 on the real WidowX arm, side and top cameras; a person pushes the block away during the rollout and the policy recovers.">
           <source data-src="static/videos/real_pusht_5.mp4" type="video/mp4">
         </video>
-        <figcaption>Rollout 5 · 3× speed</figcaption>
+        <figcaption>Rollout 5 · with human perturbations · 3× speed</figcaption>
       </figure>
     </div>
 

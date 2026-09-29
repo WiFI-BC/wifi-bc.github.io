@@ -52,13 +52,6 @@ a:focus-visible, .button:focus-visible, summary:focus-visible, [tabindex]:focus-
 .publication-links .button .icon { width: 1.1em; height: 1.1em; margin: 0 !important; }
 .publication-links .button:hover { text-decoration: none; }
 
-.tldr {
-  max-width: 40rem;
-  margin: 1.75rem auto 0;
-  color: var(--muted);
-  font-size: 1.05rem;
-}
-
 @media screen and (max-width: 768px) {
   .publication-title.is-1 { font-size: 2rem; }
   .content.has-text-justified { text-align: left !important; }
@@ -110,6 +103,12 @@ video {
 
 .video-tile { flex: 0 1 calc((100% - 2rem) / 3); }
 .video-grid.is-wide .video-tile { flex-basis: calc((100% - 1rem) / 2); }
+.video-grid.is-quad .video-tile { flex-basis: calc((100% - 3rem) / 4); }
+
+.rollout-group { margin-top: 1.5rem; }
+.rollout-group .title { margin-bottom: 0.5rem; }
+.rollout-group .video-grid { margin: 0.75rem 0 0; }
+.rollout-note { color: var(--muted); font-size: 0.9rem; }
 
 .video-tile figcaption {
   margin-top: 0.4rem;
@@ -121,6 +120,7 @@ video {
 @media screen and (max-width: 768px) {
   .video-tile { flex-basis: calc((100% - 1rem) / 2); }
   .video-grid.is-wide .video-tile { flex-basis: 100%; }
+  .video-grid.is-quad .video-tile { flex-basis: calc((100% - 1rem) / 2); }
 }
 
 /* Method */
