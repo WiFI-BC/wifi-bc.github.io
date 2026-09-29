@@ -33,6 +33,16 @@ a:focus-visible, .button:focus-visible, summary:focus-visible, [tabindex]:focus-
 .container > h3.title { margin-top: 2.5rem; }
 .container > h2 + h3.title { margin-top: 0; }
 
+/* Multi-line text is justified. Centered captions keep a centered last line,
+   so captions that fit on one line stay centered. */
+
+main p, main li, main figcaption, .footer p {
+  text-align: justify;
+  hyphens: auto;
+}
+
+.video-tile figcaption, figcaption.is-centered, .footer p { text-align-last: center; }
+
 /* Hero */
 
 .hero-body { padding: 4rem 1rem 2rem; }
@@ -54,7 +64,6 @@ a:focus-visible, .button:focus-visible, summary:focus-visible, [tabindex]:focus-
 
 @media screen and (max-width: 768px) {
   .publication-title.is-1 { font-size: 2rem; }
-  .content.has-text-justified { text-align: left !important; }
   .section { padding: 2.5rem 1rem; }
 }
 
@@ -114,7 +123,6 @@ video {
   margin-top: 0.4rem;
   color: var(--muted);
   font-size: 0.9rem;
-  text-align: center;
 }
 
 @media screen and (max-width: 768px) {
