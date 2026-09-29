@@ -1,11 +1,486 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>WiFI-BC</title>
-  </head>
-  <body>
-    <h1>Welcome to WiFI-BC!</h1>
-  </body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wire-Fitting Implicit Behavioral Cloning (WiFI-BC)</title>
+  <meta name="description" content="WiFI-BC is an implicit behavioral cloning method that learns a generator of a few candidate actions and a state-action score function, so inference is one forward generation plus N parallelizable evaluations.">
+  <meta name="keywords" content="WiFI-BC, implicit behavioral cloning, imitation learning, wire-fitting, energy-based models, robot learning">
+  <link rel="icon" href="static/images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&amp;family=Noto+Sans:ital,wght@0,400;0,600;1,400&amp;display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+  <script defer src="static/js/index.js"></script>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop has-text-centered">
+      <h1 class="title is-1 publication-title">Wire-Fitting Implicit Behavioral Cloning (WiFI-BC)</h1>
+      <p class="subtitle is-5 publication-subtitle">Learning Efficient Implicit Policies from Demonstrations via Representative Candidate Actions</p>
+      <div class="publication-links">
+        <a class="button is-dark is-rounded" href="https://github.com/WiFI-BC/Wire-Fitting-Implicit-Behavioral-Cloning">
+          <svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          <span>Code</span>
+        </a>
+      </div>
+      <p class="tldr">
+        A learned generator proposes a small set of candidate actions, and the policy is the arg&nbsp;max over their scores rather than a search over the action space.
+      </p>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<section class="section teaser" id="teaser">
+  <div class="container is-max-desktop">
+    <figure class="figure">
+      <video autoplay muted loop playsinline controls preload="auto" width="1210" height="480"
+             poster="static/videos/teaser_pusht.webp" aria-label="WiFI-BC pushing a red T-shaped block onto its outline with a real WidowX arm, seen from a side camera and a top camera.">
+        <source src="static/videos/teaser_pusht.mp4" type="video/mp4">
+      </video>
+      <figcaption class="has-text-centered">WiFI-BC on Push-T with a real WidowX arm, seen from two cameras (3× speed).</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section" id="abstract">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Abstract</h2>
+    <div class="content has-text-justified">
+      <p>
+        Imitation learning algorithms face the dilemma of choosing between task success and inference-time efficiency.
+        Explicit methods provide the fastest inference but often fail to model complex, discontinuous, or multimodal action distributions.
+        On the other hand, implicit and diffusion-based methods improve their success by iteratively refining their actions, which sacrifices efficiency.
+        Whereas some methods aim to distill diffusion policies while increasing inference speed, they either suffer from significant performance decreases or their speed increase is limited.
+        In this paper, we introduce Wire-Fitting Implicit Behavioral Cloning (WiFI-BC), a novel implicit imitation learning method that learns a generator to output a small set of <i>N</i> candidate actions and a state-action score function to evaluate them.
+        Inspired by the structural maximization property of wire-fitting interpolation, our algorithm biases one of the candidate actions toward maximizing the score function.
+        Consequently, the inference optimization step consists of just one forward generation and <i>N</i> parallelizable evaluations rather than an iterative process, providing high success rates while maintaining high inference speed.
+        We evaluate WiFI-BC on seven tasks in synthetic, simulated, and real-world environments, demonstrating equivalent task success to state-of-the-art methods with a significant reduction in per-step inference time.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="section is-shaded" id="method">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Method</h2>
+    <div class="content">
+      <p>
+        Instead of searching the action space as in implicit behavioral cloning, WiFI-BC learns a generator that proposes a small set of candidate actions, and a state-action score function.
+        The generator is trained to make the small set of candidate actions representative of the score function, while making one of them the maximizer.
+        Therefore, acting is simply an arg&nbsp;max over the candidate actions rather than an optimization over the entire action space.
+      </p>
+    </div>
+    <figure class="figure">
+      <a class="zoom" href="static/images/maindiagram.webp" title="Open full-size figure"><img src="static/images/maindiagram.webp" width="1920" height="562"
+             alt="Diagram of WiFI-BC. Training: the generator f_φ(s) outputs control points around the expert action a*; the Q-estimator Q_θ(s,a) scores them together with hard and external negatives under an InfoNCE loss where a* is the positive; the generator receives the same loss with its sign flipped while the critic is frozen. Inference: the generator outputs candidate actions, Q_θ scores every one, the arg max is selected, optionally refined, and sent to the robot."></a>
+      <figcaption>
+        WiFI-BC consists of two networks: (i) a Control Point Generator generates a small set of <i>N</i> representative candidate actions and (ii) a Q-Estimator evaluates each candidate action, from which we choose the action with the highest score.
+        During training, both networks are optimized jointly following an adversarial synergy.
+      </figcaption>
+    </figure>
+
+    <div class="columns is-multiline method-cards">
+      <div class="column is-half">
+        <div class="method-card">
+          <h3 class="title is-5">Implicit Q-Estimator</h3>
+          <p>
+            A state-action score function <i>Q</i><sub>θ</sub>(<i>s</i>, <i>a</i>), and the policy acts by maximizing it.
+            It is trained with the InfoNCE loss, a cross-entropy over a candidate set made of the expert action and a set of negative examples.
+          </p>
+        </div>
+      </div>
+      <div class="column is-half">
+        <div class="method-card">
+          <h3 class="title is-5">Control Point Generator</h3>
+          <p>
+            A network <i>f</i><sub>φ</sub> that emits <i>N</i> candidate actions per state, called control points.
+            One loss moves only the <em>nearest</em> control point toward the expert action, biasing the generator toward structural maximizability.
+            An entropy loss spreads the rest across the action space, so multimodal demonstrations can receive one control point per mode.
+          </p>
+        </div>
+      </div>
+      <div class="column is-half">
+        <div class="method-card">
+          <h3 class="title is-5">Negative examples sampling</h3>
+          <p>
+            The top-<i>k</i> scored control points, with a stop-gradient, together with either Langevin MCMC negatives for multimodal robustness or noisy copies of the expert action, whose noise tightens during training, for enhanced precision.
+            The mixture makes the Q-estimator aware of the complete action space and sharpens it where it matters most.
+          </p>
+        </div>
+      </div>
+      <div class="column is-half">
+        <div class="method-card">
+          <h3 class="title is-5">Coupled objective</h3>
+          <p>
+            Both networks are trained jointly in a single backward pass.
+            The generator maximizes the same InfoNCE loss with the Q-estimator frozen, which drives the control points toward high Q-scores, while the estimator minimizes it on detached control points.
+          </p>
+        </div>
+      </div>
+      <div class="column is-full">
+        <div class="method-card">
+          <h3 class="title is-5">One-shot inference</h3>
+          <p>
+            <b>WiFI-BC-argmax</b> runs one generator pass, <i>N</i> parallel score evaluations, and an arg&nbsp;max over the control points.
+            When additional precision is required, <b>WiFI-BC-DFO</b> and <b>WiFI-BC-langevin</b> refine the control-point cloud with derivative-free optimization or Langevin MCMC, starting from the control points instead of uniformly sampled actions.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="title is-4">How many control points?</h3>
+    <figure class="figure is-narrow">
+      <img src="static/images/nsweep_particle16.webp" width="1440" height="618" loading="lazy"
+           alt="Two line plots over the number of control points N from 1 to 200 on Particle 16-D. Left: WiFI-BC-argmax success rate is 0% at N=1, about 62% at N=2 and between roughly 49% and 84% for larger N. Right: latency per step stays near 0.4 ms for every N.">
+      <figcaption>
+        Task success and latency curves as a function of the number of control points, <i>N</i>.
+        We observe that, while we achieve considerable success from <i>N</i>=2, more control points do not necessarily lead to better performance.
+        The latency curve remains flat across all values of <i>N</i>, a behavior observed in all environments.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section" id="tasks">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Tasks</h2>
+    <figure class="figure">
+      <a class="zoom" href="static/images/environments.webp" title="Open full-size figure"><img src="static/images/environments.webp" width="1920" height="392" loading="lazy"
+             alt="Six task settings: a particle moving between two goals, a simulated arm pushing a block into a target zone, a Shadow Hand holding a pen, a Franka arm in a kitchen, a Franka arm in a LIBERO tabletop scene, and a real WidowX arm pushing a red T-shaped block."></a>
+      <figcaption>
+        The task settings used in this work, left to right: the <i>n</i>-dimensional particle integrator; simulated block pushing, shown here from the camera used by the pixel variant; Adroit Pen reorientation; Franka Kitchen; LIBERO-Goal; and Push-T on a real WidowX arm.
+      </figcaption>
+    </figure>
+
+    <section class="table-container" aria-labelledby="envs-caption" tabindex="0">
+      <table class="table is-fullwidth is-narrow data-table">
+        <caption id="envs-caption">Environments and demonstration data</caption>
+        <thead>
+          <tr>
+            <th scope="col">Environment</th>
+            <th scope="col">Obs. dim.</th>
+            <th scope="col">Action dim.</th>
+            <th scope="col">Success metric</th>
+            <th scope="col"># Demos / # Transitions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Particle (<i>n</i>-D)</th><td>4<i>n</i></td><td><i>n</i></td><td>Success Rate</td><td>2,000 / 102,000</td></tr>
+          <tr><th scope="row">D4RL Adroit Pen (human)</th><td>45</td><td>24</td><td>Episode Reward</td><td>25 / 5,000</td></tr>
+          <tr><th scope="row">D4RL Franka Kitchen (complete)</th><td>59</td><td>9</td><td>Subtasks Completed (0–4)</td><td>19 / 4,209</td></tr>
+          <tr><th scope="row">Pushing (states)</th><td>10</td><td>2</td><td>Success Rate</td><td>1,400 / 75,226</td></tr>
+          <tr><th scope="row">Pushing (pixels)</th><td>3×240×320</td><td>2</td><td>Success Rate</td><td>2,000 / 104,840</td></tr>
+          <tr><th scope="row">LIBERO-Goal (pixels)</th><td>2×3×128×128</td><td>7</td><td>Success Rate</td><td>500 / 63,728</td></tr>
+          <tr><th scope="row">Push-T WidowX (real)</th><td>2×3×240×320</td><td>2</td><td>Intersection over Union (IoU)</td><td>151 / 91,757</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <p class="table-note">
+      Observation width is given per frame and thus increases with frame stacking.
+      LIBERO provides two RGB views of the scene.
+      Kitchen reports the number of subtasks solved rather than a success rate.
+      All methods are trained from scratch using only the demonstration dataset and no pretraining.
+    </p>
+  </div>
+</section>
+
+<section class="section is-shaded" id="simulation">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Simulation results</h2>
+
+    <h3 class="title is-4">Rollouts</h3>
+    <div class="video-grid">
+      <figure class="video-tile" data-task="particle">
+        <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+               poster="static/videos/sim_particle.webp" aria-label="Particle integrator: the agent reaches the first goal, then moves to the second goal and stays there.">
+          <source data-src="static/videos/sim_particle.mp4" type="video/mp4">
+        </video>
+        <figcaption>Particle (2-D shown)</figcaption>
+      </figure>
+      <figure class="video-tile" data-task="pushing">
+        <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+               poster="static/videos/sim_pushing.webp" aria-label="Simulated xArm pushing a small block into the green target zone.">
+          <source data-src="static/videos/sim_pushing.mp4" type="video/mp4">
+        </video>
+        <figcaption>Simulated Pushing (pixels)</figcaption>
+      </figure>
+      <figure class="video-tile" data-task="pen">
+        <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+               poster="static/videos/sim_pen.webp" aria-label="Shadow Hand reorienting a pen to match the orientation of the target pen.">
+          <source data-src="static/videos/sim_pen.mp4" type="video/mp4">
+        </video>
+        <figcaption>Adroit Pen</figcaption>
+      </figure>
+      <figure class="video-tile" data-task="kitchen">
+        <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+               poster="static/videos/sim_kitchen.webp" aria-label="Franka arm manipulating several objects in a simulated kitchen.">
+          <source data-src="static/videos/sim_kitchen.mp4" type="video/mp4">
+        </video>
+        <figcaption>Franka Kitchen</figcaption>
+      </figure>
+      <figure class="video-tile" data-task="libero">
+        <video autoplay muted loop playsinline controls preload="none" width="512" height="512"
+               poster="static/videos/sim_libero.webp" aria-label="Franka arm completing a language-conditioned LIBERO-Goal task.">
+          <source data-src="static/videos/sim_libero.mp4" type="video/mp4">
+        </video>
+        <figcaption>LIBERO-Goal</figcaption>
+      </figure>
+    </div>
+
+    <h3 class="title is-4">Task success and inference cost</h3>
+    <div class="content">
+      <p>
+        We compare WiFI-BC against regression behavioral cloning (BC), Implicit Behavioral Cloning (IBC), Diffusion Policy with DDPM and DDIM sampling, and Consistency Policy (CP), focusing on task success and per-step inference time.
+        WiFI-BC is never beaten on both success and speed at the same time.
+      </p>
+    </div>
+    <figure class="figure">
+      <a class="zoom" href="static/images/table2_tradeoff.webp" title="Open full-size figure"><img src="static/images/table2_tradeoff.webp" width="1920" height="890" loading="lazy"
+             alt="Eight scatter plots of task score against inference time per step in milliseconds on a log scale, one per task: Particle 16-D, Adroit Pen, Franka Kitchen, Pushing from states, Pushing from pixels, LIBERO-Goal, and two Push-T real-robot panels (IoU and IoU difference versus BC). WiFI-BC points lie on the Pareto frontier in every panel. The same numbers are listed in the table below."></a>
+      <figcaption>
+        Mean ± standard deviation across training seeds.
+        We highlight the Pareto frontier to indicate which methods achieve the best trade-offs between success and speed.
+      </figcaption>
+    </figure>
+
+    <div class="content">
+      <ul>
+        <li>Excluding BC, WiFI-BC and CP 1-step compete to be the fastest method in every environment, while WiFI-BC is significantly superior in task success.</li>
+        <li>Even when inference-time refinement is needed, WiFI-BC is 2× faster than IBC when both need Langevin MCMC refinement.</li>
+        <li>On <i>Franka Kitchen</i>, WiFI-BC-langevin obtains the highest number of subtasks completed together with IBC. On <i>LIBERO-Goal</i>, WiFI-BC-argmax is on par with BC, both achieving the best success rate across all methods.</li>
+      </ul>
+      <p class="is-size-7">
+        Simulated results are the mean ± standard deviation across three training seeds evaluated on 100 episodes each.
+        Inference times were measured on the same NVIDIA GeForce RTX 5070 Laptop GPU, with a receding horizon of a single step.
+      </p>
+    </div>
+
+    <details class="numbers">
+      <summary>Show all numbers</summary>
+      <section class="table-container" aria-labelledby="results-caption" tabindex="0">
+        <table class="table is-fullwidth is-narrow data-table results-table">
+          <caption id="results-caption">Experimental results</caption>
+          <thead>
+            <tr><th scope="col">Method</th><th scope="col">Score</th><th scope="col">Time (ms)</th></tr>
+          </thead>
+          <tbody>
+            <tr class="group"><th scope="rowgroup" colspan="3">Particle 16-D (success %)</th></tr>
+            <tr><th scope="row">BC (MSE)</th><td>3 ± 12.6</td><td>0.11</td></tr>
+            <tr><th scope="row">IBC</th><td><b>99 ± 4.3</b></td><td>476.45</td></tr>
+            <tr><th scope="row">DDPM-100</th><td>67.0 ± 7.2</td><td>41.95</td></tr>
+            <tr><th scope="row">DDIM-10</th><td>71.0 ± 7.1</td><td>6.45</td></tr>
+            <tr><th scope="row">CP 1-step</th><td>0.0 ± 0.0</td><td>0.90</td></tr>
+            <tr class="ours"><th scope="row">WiFI-BC-argmax</th><td>82.7 ± 3.1</td><td><b>0.38</b></td></tr>
+            <tr class="ours"><th scope="row">WiFI-BC-langevin(100)</th><td>84.2 ± 7.2</td><td>204.24</td></tr>
+
+            <tr class="group"><th scope="rowgroup" colspan="3">Adroit Pen, human (mean return)</th></tr>
+            <tr><th scope="row">BC (MSE)</th><td>2141 ± 109</td><td>0.70</td></tr>
+            <tr><th scope="row">IBC</th><td>2586 ± 65</td><td>195.87</td></tr>
+            <tr><th scope="row">DDPM-100</th><td><b>3050 ± 111</b></td><td>58.39</td></tr>
+            <tr><th scope="row">DDIM-5</th><td><b>3077 ± 67</b></td><td>4.32</td></tr>
+            <tr><th scope="row">CP 1-step</th><td>2287 ± 143</td><td><b>1.13</b></td></tr>
+            <tr class="ours"><th scope="row">WiFI-BC-argmax</th><td>2631 ± 110</td><td>1.55</td></tr>
+
+            <tr class="group"><th scope="rowgroup" colspan="3">Franka Kitchen, complete (subtasks, 0–4)</th></tr>
+            <tr><th scope="row">BC (MSE)</th><td>1.76 ± 0.07</td><td>0.69</td></tr>
+            <tr><th scope="row">IBC</th><td><b>3.37 ± 0.01</b></td><td>432.95</td></tr>
+            <tr><th scope="row">DDPM-100</th><td>2.45 ± 0.41</td><td>67.34</td></tr>
+            <tr><th scope="row">DDIM-5</th><td>2.60 ± 0.51</td><td>4.49</td></tr>
+            <tr><th scope="row">CP 1-step</th><td>1.12 ± 0.88</td><td><b>1.20</b></td></tr>
+            <tr class="ours"><th scope="row">WiFI-BC-langevin(50+30)</th><td><b>3.41 ± 0.19</b></td><td>172.67</td></tr>
+            <tr class="ours"><th scope="row">WiFI-BC-argmax</th><td>2.28 ± 0.35</td><td>1.67</td></tr>
+
+            <tr class="group"><th scope="rowgroup" colspan="3">Simulated Pushing, states (success %)</th></tr>
+            <tr><th scope="row">BC (MSE)</th><td>98.3 ± 0.5</td><td>0.48</td></tr>
+            <tr><th scope="row">BC (MDN)</th><td>100 ± 0</td><td>0.57</td></tr>
+            <tr><th scope="row">IBC + DFO</th><td>100 ± 0</td><td>5.12</td></tr>
+            <tr><th scope="row">DDPM-100</th><td>99.3 ± 0.6</td><td>57.92</td></tr>
+            <tr><th scope="row">DDIM-5</th><td>99.0 ± 1.7</td><td>4.17</td></tr>
+            <tr><th scope="row">CP 1-step</th><td>4.5 ± 3.5</td><td>1.12</td></tr>
+            <tr class="ours"><th scope="row">WiFI-BC-argmax</th><td>99.0 ± 1.0</td><td><b>0.79</b></td></tr>
+            <tr class="ours"><th scope="row">WiFI-BC-DFO (3 it.)</th><td>100 ± 0</td><td>3.40</td></tr>
+
+            <tr class="group"><th scope="rowgroup" colspan="3">Simulated Pushing, pixels (success %)</th></tr>
+            <tr><th scope="row">BC (MSE)</th><td>87.0 ± 4.1</td><td>0.87</td></tr>
+            <tr><th scope="row">BC (MDN)</th><td>10.0 ± 4.3</td><td>0.87</td></tr>
+            <tr><th scope="row">IBC</th><td><b>100 ± 0</b></td><td>16.06</td></tr>
+            <tr><th scope="row">DDPM-100</th><td>94.0 ± 2.2</td><td>43.01</td></tr>
+            <tr><th scope="row">DDIM-5</th><td>92.7 ± 1.7</td><td>3.69</td></tr>
+            <tr><th scope="row">CP 1-step</th><td>75.0 ± 11.3</td><td>1.57</td></tr>
+            <tr class="ours"><th scope="row">WiFI-BC-argmax</th><td>94.0 ± 3.0</td><td><b>1.46</b></td></tr>
+            <tr class="ours"><th scope="row">WiFI-BC-DFO (5 it.)</th><td>95.7 ± 1.7</td><td>5.87</td></tr>
+
+            <tr class="group"><th scope="rowgroup" colspan="3">LIBERO-Goal, pixels (success %)</th></tr>
+            <tr><th scope="row">BC</th><td><b>94.1 ± 1.9</b></td><td>5.39</td></tr>
+            <tr><th scope="row">IBC + DFO</th><td>42.0 ± 8.7</td><td>111.05</td></tr>
+            <tr><th scope="row">DDPM-100</th><td>84.5 ± 3.4</td><td>58.77</td></tr>
+            <tr><th scope="row">DDIM-10</th><td>81.2 ± 4.1</td><td>14.92</td></tr>
+            <tr><th scope="row">CP 1-step</th><td>91.1 ± 1.4</td><td><b>5.81</b></td></tr>
+            <tr class="ours"><th scope="row">WiFI-BC-argmax</th><td><b>93.9 ± 0.7</b></td><td>10.61</td></tr>
+
+            <tr class="group"><th scope="rowgroup" colspan="3">Push-T, WidowX, real robot (IoU / Δ vs. BC)</th></tr>
+            <tr><th scope="row">BC</th><td>61.0 / –</td><td>7.8</td></tr>
+            <tr><th scope="row">IBC + DFO (10 it.)</th><td>73.41 / +8.5 ± 26.3</td><td>11.1</td></tr>
+            <tr><th scope="row">DDPM-100</th><td>65.0 / +5.0 ± 3.9</td><td>17.6</td></tr>
+            <tr><th scope="row">DDIM-25</th><td>65.6 / +5.6 ± 4.4</td><td>19.4</td></tr>
+            <tr class="ours"><th scope="row">WiFI-BC-argmax</th><td>79.9 / <b>+20.2 ± 6.2</b></td><td>13.9</td></tr>
+            <tr class="ours"><th scope="row">WiFI-BC-DFO (5 it.)</th><td><b>83.6</b> / <b>+23.6 ± 6.6</b></td><td><b>10.8</b></td></tr>
+          </tbody>
+        </table>
+      </section>
+      <p class="table-note">
+        Mean ± standard deviation across training seeds.
+        The best results of each environment are bold if no more than two methods overlap.
+        The best inference time recorded for each environment, apart from BC, is bold.
+      </p>
+    </details>
+
+    <h3 class="title is-4">Multimodality</h3>
+    <div class="columns is-vcentered">
+      <div class="column is-5">
+        <figure class="figure">
+          <img src="static/images/trajectories.webp" width="542" height="490" loading="lazy"
+               alt="Top-down view of a maze with a square obstacle between the start on the left and the goal on the right. One hundred WiFI-BC trajectories split between the corridor above the obstacle and the corridor below it, and both reach the goal.">
+        </figure>
+      </div>
+      <div class="column">
+        <div class="content">
+          <p>
+            We evaluate WiFI-BC's robustness to multimodal action distributions in MuJoCo Point Maze by placing an obstacle between the initial state and the goal, and training on demonstrations from a scripted expert that arbitrarily takes either the upper or lower corridor.
+          </p>
+          <p>
+            Over 100 rollouts, WiFI-BC exploits both modes at the first decision point and successfully follows both routes.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="real-world">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Real-world results</h2>
+    <div class="content">
+      <p>
+        On Push-T, a WidowX arm (6DoF), with its end effector pointing downward, must push a T-shaped block onto a matching silhouette.
+        Because variance is dominated by the difficulty of each initial configuration, we also report the IoU improvement over BC averaged across configurations (Δ vs. BC).
+      </p>
+    </div>
+    <div class="columns stats">
+      <div class="column">
+        <p class="stat"><span class="stat-value">83.6%</span><span class="stat-label">IoU, WiFI-BC-DFO</span></p>
+      </div>
+      <div class="column">
+        <p class="stat"><span class="stat-value">+23.6 pp</span><span class="stat-label">Δ IoU vs. BC, WiFI-BC-DFO</span></p>
+      </div>
+      <div class="column">
+        <p class="stat"><span class="stat-value">+8.5 pp</span><span class="stat-label">Δ IoU vs. BC, best baseline (IBC + DFO)</span></p>
+      </div>
+    </div>
+    <h3 class="title is-4">Setup</h3>
+    <div class="video-grid is-wide">
+      <figure class="video-tile" data-view="setup">
+        <video autoplay muted loop playsinline controls preload="none" width="720" height="520"
+               poster="static/videos/setup_front.webp" aria-label="Front view of the WidowX arm pushing the red T-shaped block, with one of the policy cameras on a stand in the foreground.">
+          <source data-src="static/videos/setup_front.mp4" type="video/mp4">
+        </video>
+        <figcaption>Front view · 1× speed</figcaption>
+      </figure>
+      <figure class="video-tile" data-view="setup">
+        <video autoplay muted loop playsinline controls preload="none" width="960" height="540"
+               poster="static/videos/setup_side.webp" aria-label="Side view of the WidowX arm pushing the red T-shaped block onto its outline on the table.">
+          <source data-src="static/videos/setup_side.mp4" type="video/mp4">
+        </video>
+        <figcaption>Side view · 1× speed</figcaption>
+      </figure>
+    </div>
+
+    <h3 class="title is-4">Rollouts from different initial configurations</h3>
+    <div class="video-grid is-wide">
+      <figure class="video-tile">
+        <video autoplay muted loop playsinline controls preload="none" width="960" height="380"
+               poster="static/videos/real_pusht_1.webp" aria-label="WiFI-BC Push-T rollout 1 on the real WidowX arm, side and top cameras.">
+          <source data-src="static/videos/real_pusht_1.mp4" type="video/mp4">
+        </video>
+        <figcaption>Rollout 1 · 3× speed</figcaption>
+      </figure>
+      <figure class="video-tile">
+        <video autoplay muted loop playsinline controls preload="none" width="960" height="380"
+               poster="static/videos/real_pusht_2.webp" aria-label="WiFI-BC Push-T rollout 2 on the real WidowX arm, side and top cameras.">
+          <source data-src="static/videos/real_pusht_2.mp4" type="video/mp4">
+        </video>
+        <figcaption>Rollout 2 · 3× speed</figcaption>
+      </figure>
+      <figure class="video-tile">
+        <video autoplay muted loop playsinline controls preload="none" width="960" height="380"
+               poster="static/videos/real_pusht_3.webp" aria-label="WiFI-BC Push-T rollout 3 on the real WidowX arm, side and top cameras.">
+          <source data-src="static/videos/real_pusht_3.mp4" type="video/mp4">
+        </video>
+        <figcaption>Rollout 3 · 3× speed</figcaption>
+      </figure>
+      <figure class="video-tile">
+        <video autoplay muted loop playsinline controls preload="none" width="960" height="380"
+               poster="static/videos/real_pusht_4.webp" aria-label="WiFI-BC Push-T rollout 4 on the real WidowX arm, side and top cameras.">
+          <source data-src="static/videos/real_pusht_4.mp4" type="video/mp4">
+        </video>
+        <figcaption>Rollout 4 · 3× speed</figcaption>
+      </figure>
+      <figure class="video-tile">
+        <video autoplay muted loop playsinline controls preload="none" width="960" height="380"
+               poster="static/videos/real_pusht_5.webp" aria-label="WiFI-BC Push-T rollout 5 on the real WidowX arm, side and top cameras.">
+          <source data-src="static/videos/real_pusht_5.mp4" type="video/mp4">
+        </video>
+        <figcaption>Rollout 5 · 3× speed</figcaption>
+      </figure>
+    </div>
+
+    <h3 class="title is-4">Success across receding horizons</h3>
+    <figure class="figure is-narrow is-small">
+      <img src="static/images/pusht_horizon_sweep.svg" width="522" height="381" loading="lazy"
+           alt="Line plot of IoU against inference time per step for BC, DP DDIM-5, DDIM-10, DDIM-25, DDPM-100, IBC DFO-5, IBC DFO-10, WiFI-BC argmax and WiFI-BC DFO-5 across receding horizons. Both WiFI-BC variants stay between about 0.72 and 0.84 IoU at every horizon, above all baselines, which remain below about 0.71.">
+      <figcaption>
+        Mean IoU across positions ± SEM for each method, configuration, and receding horizon.
+        Points along a line are the receding horizons 8, 4, 2, 1, read left to right.
+        Models output a chunk of 16 actions.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section is-shaded" id="code">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Code</h2>
+    <div class="content">
+      <p>
+        The <a href="https://github.com/WiFI-BC/Wire-Fitting-Implicit-Behavioral-Cloning">official implementation</a> includes training and evaluation for Particle, Simulated Pushing, Adroit Pen, Franka Kitchen, Point Maze and LIBERO-Goal.
+        The real-robot Push-T experiments need the physical setup, so that code is not included.
+        It requires <a href="https://docs.astral.sh/uv/">uv</a> and Python 3.12 or 3.13.
+      </p>
+      <pre><code>git clone https://github.com/WiFI-BC/Wire-Fitting-Implicit-Behavioral-Cloning.git wifi-bc
+cd wifi-bc
+uv sync</code></pre>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="container is-max-desktop">
+    <div class="content has-text-centered is-size-7">
+      <p>
+        Website template borrowed from <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>,
+        licensed under a <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+      </p>
+    </div>
+  </div>
+</footer>
+
+</body>
 </html>
